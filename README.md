@@ -1,0 +1,3 @@
+- Minh Tân - database
+- Chấn Huy - Frontend
+- Thành Phát - Backend
