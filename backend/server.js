@@ -1,39 +1,33 @@
-// ----------------------
-// File: server.js
-// ----------------------
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+import express from "express";
+import cors from "cors";
+import connectDB from "./config/database.js"; // 👉 phải có .js
 
-const connectDB = require('./config/database');
 
 const app = express();
-
-// Kết nối MongoDB
-connectDB();
-
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/api', require('./routes/user'));
+// 🔗 Kết nối MongoDB
+connectDB();
 
-// Route test mặc định
-app.get('/', (req, res) => {
-  res.send('✅ Backend server is running!');
+// Tạo model test (nếu cần)
+import mongoose from "mongoose";
+const userSchema = new mongoose.Schema({ name: String, email: String });
+const User = mongoose.model("User", userSchema);
+
+// Routes test
+app.get("/api/users", async (req, res) => {
+  const users = await User.find();
+  res.json(users);
 });
 
-// Route test JSON
-app.get('/api/test', (req, res) => {
-  res.json({
-    message: '🎉 API is working correctly!',
-    time: new Date().toLocaleString()
-  });
+app.post("/api/users", async (req, res) => {
+  const { name, email } = req.body;
+  const newUser = new User({ name, email });
+  await newUser.save();
+  res.status(201).json(newUser);
 });
 
 // Chạy server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-});
+const PORT = 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
