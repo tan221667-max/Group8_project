@@ -2,10 +2,22 @@
 // File: server.js
 // ----------------------
 const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+const connectDB = require('./config/database');
+
 const app = express();
 
-// Middleware đọc JSON từ body
+// Kết nối MongoDB
+connectDB();
+
+// Middleware
+app.use(cors());
 app.use(express.json());
+
+// Routes
+app.use('/api', require('./routes/user'));
 
 // Route test mặc định
 app.get('/', (req, res) => {
