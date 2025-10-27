@@ -4,14 +4,16 @@ function App() {
   const [users, setUsers] = useState([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [editingUser, setEditingUser] = useState(null); // user đang sửa
 
+  // 🔹 Lấy danh sách user từ backend
   const fetchUsers = async () => {
     try {
       const res = await fetch("http://localhost:3000/api/users");
       const data = await res.json();
       setUsers(data);
     } catch (err) {
-      console.error(err);
+      console.error("Lỗi khi tải user:", err);
     }
   };
 
@@ -19,6 +21,7 @@ function App() {
     fetchUsers();
   }, []);
 
+  // 🔹 Thêm user mới
   const addUser = async () => {
     if (!name || !email) return alert("Nhập đầy đủ tên và email!");
     try {
@@ -32,7 +35,47 @@ function App() {
       setName("");
       setEmail("");
     } catch (err) {
-      console.error(err);
+      console.error("Lỗi khi thêm user:", err);
+    }
+  };
+
+  // 🔹 Xóa user
+  const deleteUser = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn xóa user này không?")) return;
+    try {
+      await fetch(`http://localhost:3000/api/users/${id}`, {
+        method: "DELETE",
+      });
+      setUsers(users.filter((u) => u._id !== id));
+    } catch (err) {
+      console.error("Lỗi khi xóa user:", err);
+    }
+  };
+
+  // 🔹 Bắt đầu chỉnh sửa user
+  const startEdit = (user) => {
+    setEditingUser(user);
+    setName(user.name);
+    setEmail(user.email);
+  };
+
+  // 🔹 Cập nhật user
+  const updateUser = async () => {
+    if (!name || !email) return alert("Nhập đầy đủ tên và email!");
+    try {
+      const res = await fetch(`http://localhost:3000/api/users/${editingUser._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email }),
+      });
+      const updatedUser = await res.json();
+
+      setUsers(users.map((u) => (u._id === updatedUser._id ? updatedUser : u)));
+      setEditingUser(null);
+      setName("");
+      setEmail("");
+    } catch (err) {
+      console.error("Lỗi khi cập nhật user:", err);
     }
   };
 
@@ -55,15 +98,42 @@ function App() {
           onChange={(e) => setEmail(e.target.value)}
           style={styles.input}
         />
-        <button onClick={addUser} style={styles.button}>
-          Thêm User
-        </button>
+
+        {editingUser ? (
+          <>
+            <button onClick={updateUser} style={styles.buttonBlue}>
+              Lưu
+            </button>
+            <button
+              onClick={() => {
+                setEditingUser(null);
+                setName("");
+                setEmail("");
+              }}
+              style={styles.buttonGray}
+            >
+              Hủy
+            </button>
+          </>
+        ) : (
+          <button onClick={addUser} style={styles.buttonGreen}>
+            Thêm User
+          </button>
+        )}
       </div>
 
       <ul style={styles.userList}>
         {users.map((u) => (
           <li key={u._id || u.email} style={styles.userItem}>
             <strong>{u.name}</strong> - {u.email}
+            <div style={{ marginTop: "5px" }}>
+              <button onClick={() => startEdit(u)} style={styles.buttonBlueSmall}>
+                Sửa
+              </button>
+              <button onClick={() => deleteUser(u._id)} style={styles.buttonRedSmall}>
+                Xóa
+              </button>
+            </div>
           </li>
         ))}
       </ul>
@@ -71,6 +141,7 @@ function App() {
   );
 }
 
+// 🎨 Style CSS-in-JS
 const styles = {
   container: {
     maxWidth: "600px",
@@ -87,6 +158,7 @@ const styles = {
   },
   form: {
     display: "flex",
+    flexWrap: "wrap",
     gap: "10px",
     marginBottom: "20px",
   },
@@ -97,11 +169,29 @@ const styles = {
     border: "1px solid #ccc",
     fontSize: "16px",
   },
-  button: {
+  buttonGreen: {
     padding: "10px 15px",
     borderRadius: "6px",
     border: "none",
     backgroundColor: "#4caf50",
+    color: "#fff",
+    fontWeight: "bold",
+    cursor: "pointer",
+  },
+  buttonBlue: {
+    padding: "10px 15px",
+    borderRadius: "6px",
+    border: "none",
+    backgroundColor: "#2196f3",
+    color: "#fff",
+    fontWeight: "bold",
+    cursor: "pointer",
+  },
+  buttonGray: {
+    padding: "10px 15px",
+    borderRadius: "6px",
+    border: "none",
+    backgroundColor: "#777",
     color: "#fff",
     fontWeight: "bold",
     cursor: "pointer",
@@ -113,6 +203,23 @@ const styles = {
   userItem: {
     padding: "10px",
     borderBottom: "1px solid #ddd",
+  },
+  buttonBlueSmall: {
+    marginRight: "8px",
+    padding: "6px 10px",
+    borderRadius: "5px",
+    backgroundColor: "#2196f3",
+    color: "#fff",
+    border: "none",
+    cursor: "pointer",
+  },
+  buttonRedSmall: {
+    padding: "6px 10px",
+    borderRadius: "5px",
+    backgroundColor: "#f44336",
+    color: "#fff",
+    border: "none",
+    cursor: "pointer",
   },
 };
 
