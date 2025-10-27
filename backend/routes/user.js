@@ -1,18 +1,17 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const userController = require("../controllers/userController");
+const userController = require('../controllers/userController');
 
 // Lấy danh sách tất cả người dùng
-router.get("/", (req, res) => {
-  const users = userController.getAllUsers();
-  res.json(users);
-});
+router.get('/users', userController.getUsers);
 
 // Thêm người dùng mới
-router.post("/", (req, res) => {
-  const { name, email } = req.body;
-  const newUser = userController.createUser({ name, email });
-  res.status(201).json(newUser);
-});
+router.post('/users', userController.createUser);
+
+// Cập nhật thông tin người dùng (PUT)
+router.put('/users/:id', userController.updateUser);
+
+// Xóa người dùng (DELETE)
+router.delete('/users/:id', userController.deleteUser);
 
 module.exports = router;
