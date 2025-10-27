@@ -1,18 +1,28 @@
-const express = require("express");
+// routes/users.js (Express)
+const express = require('express');
 const router = express.Router();
-const userController = require("../controllers/userController");
 
-// Lấy danh sách tất cả người dùng
-router.get("/", (req, res) => {
-  const users = userController.getAllUsers();
+// GET /users
+router.get('/', async (req, res) => {
+  // lấy từ DB...
+  const users = await User.find({});
   res.json(users);
 });
 
-// Thêm người dùng mới
-router.post("/", (req, res) => {
-  const { name, email } = req.body;
-  const newUser = userController.createUser({ name, email });
-  res.status(201).json(newUser);
+// PUT /users/:id
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const update = req.body;
+  // ví dụ với mongoose:
+  const updated = await User.findByIdAndUpdate(id, update, { new: true });
+  res.json(updated);
 });
 
-module.exports = router;
+// DELETE /users/:id
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  await User.findByIdAndDelete(id);
+  res.status(204).send(); // hoặc res.json({ success: true })
+});
+
+    module.exports = router;
